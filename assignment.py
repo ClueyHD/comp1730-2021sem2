@@ -6,7 +6,10 @@ site, at https://cs.anu.edu.au/courses/comp1730/assessment/project/
 
 The assignment is due 25/10/2021 at 9:00 am, Canberra time
 
-Collaborators: <list the UIDs of ALL members of your project group here>
+Collaborators: 
+Ella Wishart - U7285289
+Rishika Nair Prabhakaran - U7067869
+Zihan Zhang - U6700254
 """
 
 def analyse(path_to_files):
