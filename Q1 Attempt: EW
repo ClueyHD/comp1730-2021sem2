@@ -1,0 +1,134 @@
+def ranking_files_by_date(path):
+    '''
+    Creates a dictionary of the contents of the specified folder, ranked by date.
+    The key of each file corresponds to its rank, eg the first entry is the oldest date
+
+    Parameters
+    ----------
+    path : The complete path to the folder
+    
+    Returns
+    -------
+    date_dictionary : A dictionary with the rank as the key and the value as the
+    corresponding date (file name). The last entry is the most recent file.
+
+    '''
+    
+    import glob
+    import numpy as np
+    files_list = glob.glob('*.csv')
+    i=0
+    
+    dtype = [('year',int), ('month',int), ('day',int)]
+    values = [(files_list[i][6:10],files_list[i][0:2],files_list[i][3:5]) for files_list[i] in files_list]
+
+    date_array = np.array(values,dtype=dtype)
+    sorted_array = np.sort(date_array, order=['year','month','day'])
+    most_recent_file = sorted_array[-1]
+    
+    #Attempting to define a dictionary with rank as a key and day as a value
+    date_dictionary = {}
+    for i in range(0, len(files_list)):
+        date_dictionary[i] = sorted_array[i]
+    
+    return date_dictionary
+
+def most_recent_file(path):
+    '''
+    Returns the most recent file in the directory, from the dictionary of ranked files
+
+    Parameters
+    ----------
+    path : THe complete path to the directory
+
+    Returns
+    -------
+    file_name : A string. The file name of the most recently-dated file
+
+    '''
+    dates = list(ranking_files_by_date(path).values())
+    most_recent_file = dates[-1]
+    #print(most_recent_file)
+
+    
+    most_recent_year = str(format_help(most_recent_file,0,4))
+    most_recent_month = str(format_help(most_recent_file,1,2))
+    most_recent_day = str(format_help(most_recent_file,2,2))
+
+
+    file_name = str(most_recent_month +'-'+most_recent_day+'-'+ most_recent_year + '.csv')
+    return file_name
+
+def open_and_get_component(path,i):
+    '''
+    Returns the ith column of the most recent file in the directory specified
+
+    Parameters
+    ----------
+    path : The complete path to the folder in which the most recent file is held.
+    i : The desired column number; for example 'last updated' is i=3. (an integer)
+
+    Returns
+    -------
+    component : A list of all entries in the ith column of the csv file
+
+    '''
+    import csv
+    file_name = most_recent_file(path)
+    file = open(file_name, 'r')
+    with file as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)
+        data = [row for row in reader]
+        component = [row[i] for row in data]
+        
+    return component
+
+def format_help(array,i,j):
+    '''This function assists in transforming the output of numpy-array ordering
+    into the same format as the file names in the directory by inserting zeros where
+    no non-zero digit is present.
+     Array is the output of a numpy array
+     i is the integer corresponding to the index of the value concerned
+     j is the number of digits required in the output.
+    for example, the month needs 2 digits, so j is 2.'''
+
+    if len(str(array[i])) < j:
+        zeroes_needed = j - len(str(array[i]))
+        value = str(str(0) * zeroes_needed) + str(array[i])
+    else:
+        value = array[i]
+    return value
+
+def extract_recent_timestamp(path):
+    '''
+    This function finds and returns the most recent timestamp from the 'last_update'
+    column of the most-recent file.
+
+    Parameters
+    ----------
+    path : Complete path to the desired directory
+
+    Returns
+    -------
+    most_recent_timestamp: The most date and time of the most recent update
+    A string of the form YYYY-MM-DD hh:mm:ss
+
+    '''
+    LUD = open_and_get_component(path,4)
+    dtype = [('year',int), ('month', int), ('day', int), ('hrs', int), ('min', int), ('sec',int)]
+    values = [(LUD[i][0:4],LUD[i][5:7],LUD[i][8:10],LUD[i][11:13],LUD[i][14:16],LUD[i][17:19]) for LUD[i] in LUD]
+    #print(values[1])
+    time_array = np.array(values, dtype=dtype)
+    sorted_array = np.sort(time_array, order=['year','month','day','hrs','min','sec'])
+    #print(sorted_array[-1], len(sorted_array[-1]))
+    
+    year = str(format_help(sorted_array[-1],0,4))
+    month = str(format_help(sorted_array[-1],1,2))
+    day = str(format_help(sorted_array[-1],2,2))
+    hour = str(format_help(sorted_array[-1],3,2))
+    minute = str(format_help(sorted_array[-1],4,2))
+    second = str(format_help(sorted_array[-1],5,2))
+    
+    most_recent_timestamp = year +'-'+ month +'-'+ day +' '+ hour +':'+ minute +':'+ second
+    return most_recent_timestamp
