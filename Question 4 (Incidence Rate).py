@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat Oct 23 23:07:51 2021
-
-@author: ellaw
-"""
-
 import os
 import csv
 
@@ -93,7 +86,7 @@ def convert_to_file_name_format(file):
 
 ################################################################################################
 
-def incident_rate_attempt(path):
+def incidence_rate_and_cfr_dictionary(path):
     '''This function calculates and returns the overall incidence_rate for each country
     This is based on the following calculations:
         Let n=total number of cases, r=the incidence rate, p=population
@@ -125,12 +118,13 @@ def incident_rate_attempt(path):
         next(reader)
         #For the calculation, we need access to the country name, the total
         #confirmed cases, and the incidence rate. These form the columns of 'data'
-        data = [(row[:][3],row[:][7],row[:][12]) for row in reader]
+        data = [(row[:][3],row[:][7],row[:][8],row[:][12]) for row in reader]
         
-    #separating each variable. Where there is incidence rate recorded, the row is ignored.
-    country = [data[:][0] for data in data if data[:][2] != '']
-    total_cases_per_state = [data[:][1] for data in data if data[:][2] != '']
-    incident_rate_per_state = [data[:][2] for data in data if data[:][2] != '']
+    #separating each variable. Where there is no incidence rate recorded, the row is ignored.
+    country = [data[:][0] for data in data if data[:][3] != '']
+    total_cases_per_state = [data[:][1] for data in data if data[:][3] != '']
+    total_deaths_per_state = [data[:][2] for data in data if data[:][3] != '']
+    incident_rate_per_state = [data[:][3] for data in data if data[:][3] != '']
     
     #country_and_IR = list(zip(country,incident_rate_per_state))
     
@@ -148,9 +142,22 @@ def incident_rate_attempt(path):
             
        #multiple_states is a list of lists, each list containing country name and incident rate 
         else:
-            multiple_states.append([country[i], total_cases_per_state[i], incident_rate_per_state[i]]) 
+            multiple_states.append([country[i], total_cases_per_state[i], incident_rate_per_state[i], total_deaths_per_state[i]]) 
             
+    #### The dict_of_CFR will hold the case_fatality ratio for each country
+    dict_of_CFR = {}
+    for i in range(0,len(country)):
+        if country.count(country[i]) == 1:
+            dict_of_CFR[country[i]] = (int(total_deaths_per_state[i])/(int(total_cases_per_state[i])) * 100)
             
+      #Creating a dictionary with country name as key and the total deaths as the value
+    country_deaths_dict = {}
+    for i in range(0,len(multiple_states)):
+        if multiple_states[i][0] in country_deaths_dict:
+            country_deaths_dict[multiple_states[i][0]] = country_deaths_dict[multiple_states[i][0]] + int(multiple_states[i][3])
+        else:
+            country_deaths_dict[multiple_states[i][0]] = int(multiple_states[i][3])
+    #print(country_deaths_dict)
     
     #We now use the calculations described in the docstring to find the incidence rate for countries with breakdown data.   
     
@@ -180,32 +187,55 @@ def incident_rate_attempt(path):
         else:
             country_total_cases_dict[multiple_states[i][0]] = int(multiple_states[i][1])
     
-    #Merging these two dictionaries so key is country name and value is [population,cases]
+    #Merging three dictionaries so key is country name and value is [population,cases,deaths]
     country_info_dict = {}
     countries = list(country_total_cases_dict.keys())
     for i in range(0,len(countries)):
-            country_info_dict[countries[i]] = [country_population_dict[countries[i]], country_total_cases_dict[countries[i]]]
-    #print(country_info_dict['Peru'])
+            country_info_dict[countries[i]] = [country_population_dict[countries[i]], country_total_cases_dict[countries[i]], country_deaths_dict[countries[i]]]
     
-    #Applying equation [3] drom docstring to determine the overall incidence rate for each country.
+    
+    #Applying equation [3] from docstring to determine the overall incidence rate for each country.
     for i in range(0,len(countries)):
         Population_of_country = country_info_dict.get(countries[i])[0]
         Total_cases_in_country = country_info_dict.get(countries[i])[1]
         Overall_incident_rate = ((Total_cases_in_country * 100000) / Population_of_country)
-    
+        Total_deaths_in_country = country_info_dict.get(countries[i])[2]
+        CFR = (((Total_cases_in_country)/(Total_cases_in_country))*100)
+   
     #We now know the incidence rate for each country and the key:value pairs (country_name:incidence_rate) can be added to the dict_of_IR
-    dict_of_IR[countries[i]] = Overall_incident_rate
+        dict_of_IR[countries[i]] = Overall_incident_rate  
+        
+    #We now know the case-fatality-ratio for each country, and can update dict_of_CFR
+        dict_of_CFR[countries[i]] = CFR
     
-    #Sorting by incidence rate, printing results
-    sort_by_rate = sorted(dict_of_IR.items(), key=lambda x:x[1], reverse =True)
+    
+    ### We now sort the data by incidence rate so that the country with the highest incident rate is the first item in the dictionary
+    sort_by_rate = dict(sorted(dict_of_IR.items(), key=lambda x:x[1], reverse =True))
+    
+    #Adding the case_fatality_ratio to each country's value. The value is now of form [incidence_rate, case_fatality_ratio]
+    sorted_keys = list(sort_by_rate.keys())
+    for i in range(0,len(sorted_keys)):
+        sort_by_rate[sorted_keys[i]] = [sort_by_rate[sorted_keys[i]], dict_of_CFR[sorted_keys[i]]]
+             
     return(sort_by_rate)
 
 
 def Question4_output(path):
-    incidence_data = incident_rate_attempt(path)
-    #case_fatality_data = case_fatality_attempt(path) ## Both of these will be lists of lists
+    ''' Generates the output of Question 4 from the values calculated in other functions
+    Parameters
+    ----------
+    path : The complete path to the directory where the files are held.
+    
+    Returns
+    -------
+    prints a string that displays the name, incidence rate and case_fatality_ratio for the countries with the 10 heighest incident rates.
+
+    '''
+    incidence_data = incidence_rate_and_cfr_dictionary(path)
+    #case_fatality_data = case_fatality_attempt(path) ## Both of these will be dictionaries
     print("Question 4"+'\n')
     for i in range(0,10):
-        country = incidence_data[i][0]
-        rate = incidence_data[i][1]
-        print(country,":", rate,"cases per 100,000 people and case-fatality ratio",'\n')
+        country = list(incidence_data.keys())[i]
+        rate = int(incidence_data[country][0]) #This gives a whole number of cases per 100000 people, which is mildly easier to comprehend
+        case_fatality_ratio = round(float(incidence_data[country][1]),3) #Rounding to 2 decimal places for ease of reading.
+        print(country,":", rate,"cases per 100,000 people and case-fatality ratio:",case_fatality_ratio,"%.",'\n')
