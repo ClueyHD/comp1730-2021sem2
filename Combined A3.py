@@ -363,7 +363,7 @@ def Q4(path_to_files):
         country = list(incidence_data.keys())[i]
         rate = int(incidence_data[country][0]) #This gives a whole number of cases per 100000 people, which is mildly easier to comprehend
         case_fatality_ratio = round(float(incidence_data[country][1]),3) #Rounding to 2 decimal places for ease of reading.
-        print(country,":", rate,"cases per 100,000 people and case-fatality ratio:",case_fatality_ratio,"%.",'\n')
+        print(country,":", rate,"cases per 100,000 people and case-fatality ratio:",case_fatality_ratio,"%.")
         
 
 ###############################################################################################
