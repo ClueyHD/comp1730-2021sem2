@@ -113,9 +113,22 @@ def question2(path_to_files):
 
 
 
-def sort_files_list(files_list):    
-    dates = [i.split('-')[0:3] for i in files_list]
+def sort_files_list(files_list):   
+    '''
+    sorts a list by date
+    Parameters
+    ----------
+    files_list : list
+        list of covid data files
+
+    Returns
+    -------
+    sorted_files_list : list
+        the list of covid data files sorted by date
+
+    '''
     
+    dates = [i.split('-')[0:3] for i in files_list if len(i.split('-')[0:3]) > 1] # if statement is to check for non-relevant files
     dif_months = set([i[0] for i in dates])
     
     sorted_files_list = list()
