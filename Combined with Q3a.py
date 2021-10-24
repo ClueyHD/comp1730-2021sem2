@@ -22,7 +22,7 @@ def analyse(path_to_files):
     print("Analysing data from folder",path_to_files,':\n\n')
     Q1(path_to_files)
     Q2(path_to_files)
-    Q3(path_to_files)
+   # Q3(path_to_files)
     Q4(path_to_files)
     pass
 ################################################################################################
@@ -410,28 +410,46 @@ def Q2(path_to_files):
 
 def Q3(path_to_files):
     no_of_files = len(sort_files_by_date(path_to_files))
-    #Creating a list of the files we want to analyse
-    #dates = []
-    #for i in range(0,(no_of_files-1)):
-        #name = select_file(path_to_files,i)
-        #dates.append(name)
-
+  
     date_cases_deaths_dict = {}
-    for i in range(0,(no_of_files - 1)):
+    date_list = []
+    for i in range(0,(no_of_files-1)):
         
         case_data = dictionary_of_cases_by_country(path_to_files,i,(i-1))
         new_cases = (list(case_data.values()))[:][2]
         new_deaths = (list(case_data.values()))[:][3]
         total_new_cases = sum(new_cases)
         total_new_deaths = sum(new_deaths)
-        date_cases_deaths_dict[i] = [total_new_cases,total_new_deaths]
+        date_name = select_file(path_to_files,i).strip(".csv'")
+        date_cases_deaths_dict[select_file(path_to_files,i).strip(".csv'")] = [total_new_cases,total_new_deaths]
     
-        date = select_file(path_to_files,i).strip(' .csv')
+        date = sort_files_by_date(path_to_files)[i]
+        date_list.append(date)
         
-        print(date+': new cases:',(date_cases_deaths_dict[i])[0],' new deaths:',(date_cases_deaths_dict[i])[1])
+        #Part a)
+        #print(date+': new cases:',(date_cases_deaths_dict[i])[0],' new deaths:',(date_cases_deaths_dict[i])[1])
         
-        
-
+     #part b
+     #using list comprehension to put in form needed by datetime
+    days = [[int(date_list[i][0]),int(date_list[i][1]),int(date_list[i][2])] for date_list[i] in date_list]
+    for i in range(0,(no_of_files - 1)):
+        actual_date = datetime.datetime(int(days[i][0]),int(days[i][1]),int(days[i][2]))
+        date_cases_deaths_dict[select_file(path_to_files,i).strip(".csv'")] += actual_date.strftime("%w")
+    #print(date_cases_deaths_dict)
+    
+    i = -2
+    n = 1
+    weekly_cases_deaths = {}
+    while i <= (len(date_cases_deaths_dict)):
+        date_name = select_file(path_to_files,i).strip(".csv'")
+        if date_cases_deaths_dict[date_name][2] != 0:
+             weekly_cases_deaths[n] += [int(date_cases_deaths_dict[date_name][0]), int(date_cases_deaths_dict[date_name][1])]
+        else:
+            weekly_cases_deaths[n] += [int(date_cases_deaths_dict[date_name][0]), int(date_cases_deaths_dict[date_name][1])]
+            n = n+1
+        i = i - 1
+    print(weekly_cases_deaths)
+    
 def Q4(path_to_files):
     ''' Generates the output of Question 4 from the values calculated in other functions
     Parameters
