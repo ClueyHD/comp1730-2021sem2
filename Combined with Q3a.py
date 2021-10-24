@@ -22,7 +22,7 @@ def analyse(path_to_files):
     print("Analysing data from folder",path_to_files,':\n\n')
     Q1(path_to_files)
     Q2(path_to_files)
-   # Q3(path_to_files)
+    Q3(path_to_files)
     Q4(path_to_files)
     pass
 ################################################################################################
