@@ -12,6 +12,14 @@ import datetime
 import fnmatch
 
 def analyse(path_to_files):
+    '''Displays the information obtained regarding to Covid-19
+    Parameters
+    ----------
+    path_to_files : The complete path to the directory containing the files.
+    Returns
+    -------
+    Prints the outputs of the constituent functions
+    '''
     print("Analysing data from folder",path_to_files,':\n\n')
     Q1(path_to_files)
     Q2(path_to_files)
@@ -144,7 +152,7 @@ def incidence_rate_and_cfr_dictionary(path_to_files):
 
     Parameters
     ----------
-    path : The complete path to the directory containing the files
+    path_to_files : The complete path to the directory containing the files
 
     Returns
     -------
@@ -253,20 +261,34 @@ def incidence_rate_and_cfr_dictionary(path_to_files):
     sorted_keys = list(sort_by_rate.keys())
     for i in range(0,len(sorted_keys)):
         sort_by_rate[sorted_keys[i]] = [sort_by_rate[sorted_keys[i]], dict_of_CFR[sorted_keys[i]]]
+        ##Please note: Information on how to sort a disctionary based on its values was found at 'Career Karma:How to Sort A Dictionary By Value in Python' Available at: https://careerkarma.com/blog/python-sort-a-dictionary-by-value/
              
     return(sort_by_rate)
 
 ##############################################################################################
 def Q1(path_to_files):
+    '''This function calculates and returns the answer to question 1 in a format
+    that is easily read and interpreted
+
+    Parameters
+    ----------
+    path_to_files : The complete path to the directory containing the files.
+
+    Returns
+    -------
+    Prints the Question number, the name of the most recent file and the last recorded update
+    as well as the number of cases worldwide and the number of deaths worldwide
+
+    '''
     # Q1a
-    #covid_files_list = sort_files_by_date(path_to_files)
     
-    # find most recent file by first finding the latest date, then day    
+    # find most recent file using the select_file function    
     recent_file = select_file(path_to_files,0)
     covid_data = pd.read_csv(path_to_files+ "/" + recent_file)
     latest_last_update = last_update(covid_data)
     
     # Q1b
+    #Calculating the total cases and total deaths worldwide
     ww_cases = sum(covid_data["Confirmed"])
     ww_deaths = sum(covid_data["Deaths"])
     print( 
@@ -276,9 +298,19 @@ def Q1(path_to_files):
     "\nTotal worldwide cases: " + str(ww_cases) + ", Total worldwide deaths: " + str(ww_deaths))
     
 def Q2(path_to_files):
+    '''Calculates and returns information pertaining to the total number of cases, deaths,
+    new cases and active cases for each country  as recorded in the most recent file
+    Parameters
+    ----------
+    path_to_files : The complete path to the directory containing the files.
+
+    Returns
+    -------
+    Prints the question number, and information pertaining to the cases of Covid-19 for the
+    ten countries with the highest number of cases.
+
+    '''
     print("\nQuestion 2:")
-    
-    #covid_files_list = sort_files_by_date(path_to_files)
     
     # get the data of the most recent file
     recent_file = select_file(path_to_files,0)
@@ -288,6 +320,7 @@ def Q2(path_to_files):
     day_before_file = select_file(path_to_files,1) 
     day_before_data = pd.read_csv(path_to_files+"/" + day_before_file)
     
+    ##2c
     # The main assumption we make to estimate active cases is that the recovery time for 
     # Covid-19 is two weeks.  i.e. any actve cases from two weeks before are either recovered or dead.
     # Hence, if we let 
@@ -349,12 +382,10 @@ def Q4(path_to_files):
     ''' Generates the output of Question 4 from the values calculated in other functions
     Parameters
     ----------
-    path : The complete path to the directory where the files are held.
-    
+    path_to_files : The complete path to the directory containing the files.
     Returns
     -------
     prints a string that displays the name, incidence rate and case_fatality_ratio for the countries with the 10 heighest incident rates.
-
     '''
     incidence_data = incidence_rate_and_cfr_dictionary(path_to_files)
     #case_fatality_data = case_fatality_attempt(path) ## Both of these will be dictionaries
